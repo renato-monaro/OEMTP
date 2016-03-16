@@ -53,6 +53,8 @@ namespace oemtp{
 			bool Compute_Gpr();
 			bool Compute_I();
 			double Get_I(unsigned N);
+			bool Set_V(unsigned N, double Val);
+			bool Set_I(unsigned N, double Val);
 			double Get_V(unsigned N);
 			unsigned Get_N_Branches();
 			unsigned Get_N_Nodes();
@@ -60,6 +62,7 @@ namespace oemtp{
 			string Get_Alias(unsigned Al);
 			bool G_Changed();
 			bool Set_Value(unsigned k, unsigned l,double);
+			double Get_Value(unsigned k, unsigned l);
 			virtual bool Reset();
 		protected:
 			gsl_matrix_view View_Gpr;

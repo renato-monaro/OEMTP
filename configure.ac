@@ -19,8 +19,10 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX
 AC_PROG_F77(gfortran)
 
-CXXFLAGS="-O0 -g3"
-#CXXFLAGS="-O3"
+#FFLAGS="-g -O2"
+FFLAGS="-O3"
+#CXXFLAGS="-O0 -g3"
+CXXFLAGS="-O3"
 #LT_INIT([disable-static])
 LT_INIT
 

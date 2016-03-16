@@ -76,10 +76,25 @@ double Component::Get_I(unsigned N){
 	return GSL_NAN;
 	}
 	
+bool Component::Set_I(unsigned N, double Val){
+	if(N<Ic->size){
+		gsl_vector_set(Ic,N,Val);
+		return true;
+		}
+	return false;
+	}
 double Component::Get_V(unsigned N){
 	if(N<View_V_Pri.vector.size)
 		return gsl_vector_get(&View_V_Pri.vector,N);
 	return GSL_NAN;
+	}
+
+bool Component::Set_V(unsigned N, double Val){
+	if(N<View_V_Pri.vector.size){
+		gsl_vector_set(&View_V_Pri.vector,N,Val);
+		return true;
+		}
+	return false;
 	}
 
 bool Component::Compute_Gpr(){
@@ -117,7 +132,14 @@ bool Component::Set_Value(unsigned k, unsigned l,double value){
 		}
 	return false;
 	}
-			
+		
+double Component::Get_Value(unsigned k, unsigned l){
+	if((k<Reff->size1)&&(l<Reff->size2)){
+		return gsl_matrix_get(Reff,k,l);
+		}
+	return -1;
+	}
+	
 Resistor::Resistor(string N1,string N2,double Res){
 	Alias.push_back(N1);
 	Alias.push_back(N2);
