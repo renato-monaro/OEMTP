@@ -443,7 +443,7 @@ bool Capacitor::Set_Value(double value){
 	Changed=true;
 	return true;
 	}	
-
+/*
 	
 Lossless_Line::Lossless_Line(string N1,string N2,double d, double l, double c,double dT){
 	Alias.push_back(N1);
@@ -536,10 +536,10 @@ bool Lossless_Line::Compute_Ih(bool e){
 	Ikm_tau=alpha*gsl_vector_get(Ikm,k_sup)+(1-alpha)*gsl_vector_get(Ikm,k_inf);
 	Imk_tau=alpha*gsl_vector_get(Imk,k_sup)+(1-alpha)*gsl_vector_get(Imk,k_inf);
 	
-	/*Vk_tau=gsl_vector_get(Vk,k_inf);
-	Vm_tau=gsl_vector_get(Vm,k_inf);
-	Ikm_tau=gsl_vector_get(Ikm,k_inf);
-	Imk_tau=gsl_vector_get(Imk,k_inf);*/
+	//Vk_tau=gsl_vector_get(Vk,k_inf);
+	//Vm_tau=gsl_vector_get(Vm,k_inf);
+	//Ikm_tau=gsl_vector_get(Ikm,k_inf);
+	//Imk_tau=gsl_vector_get(Imk,k_inf);
 
 	gsl_vector_set(&View_I_Hist_Pri.vector,0,-Vm_tau/Zc-Imk_tau);
 	gsl_vector_set(&View_I_Hist_Pri.vector,1,-Vk_tau/Zc-Ikm_tau);
@@ -662,10 +662,10 @@ bool Line::Compute_Ih(bool e){
 	Ikm_tau=alpha*gsl_vector_get(Ikm,k_sup)+(1-alpha)*gsl_vector_get(Ikm,k_inf);
 	Imk_tau=alpha*gsl_vector_get(Imk,k_sup)+(1-alpha)*gsl_vector_get(Imk,k_inf);
 	
-	/*Vk_tau=gsl_vector_get(Vk,k_sup);
-	Vm_tau=gsl_vector_get(Vm,k_sup);
-	Ikm_tau=gsl_vector_get(Ikm,k_sup);
-	Imk_tau=gsl_vector_get(Imk,k_sup);*/
+	//Vk_tau=gsl_vector_get(Vk,k_sup);
+	//Vm_tau=gsl_vector_get(Vm,k_sup);
+	//Ikm_tau=gsl_vector_get(Ikm,k_sup);
+	//Imk_tau=gsl_vector_get(Imk,k_sup);
 
 	gsl_vector_set(&View_I_Hist_Pri.vector,0,-(Zc/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau)-((R/4)/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau));
 	
@@ -788,10 +788,10 @@ bool Line::Reset(){
 //		Ikm_tau=alpha*gsl_vector_get(&Ikm.vector,k_sup)+(1-alpha)*gsl_vector_get(&Ikm.vector,k_inf);
 //		Imk_tau=alpha*gsl_vector_get(&Imk.vector,k_sup)+(1-alpha)*gsl_vector_get(&Imk.vector,k_inf);
 //	
-//		/*Vk_tau=gsl_vector_get(&Vk.vector,k_inf);
+//		Vk_tau=gsl_vector_get(&Vk.vector,k_inf);
 //		Vm_tau=gsl_vector_get(Vm,k_inf);
 //		Ikm_tau=gsl_vector_get(Ikm,k_inf);
-//		Imk_tau=gsl_vector_get(Imk,k_inf);*/
+//		Imk_tau=gsl_vector_get(Imk,k_inf);
 
 //		gsl_vector_set(Ih_Mode,2*m,-(Zc/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau)-((R/4)/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau));
 //		gsl_vector_set(Ih_Mode,2*m+1,-(Zc/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau)-((R/4)/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau));
@@ -873,4 +873,4 @@ bool MLine2::Reset(){
 		}
 	return true;
 	}
-
+*/

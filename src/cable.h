@@ -23,11 +23,13 @@
 #include<math.h>
 #include<vector>
 #include <iostream>
+#include <iomanip>
 
-#define mu_0 4E-7*M_PI //H/km
+#define mu_0 1.25663706143592e-06 //H/m
 #define eps_0 8.854187817E-12 //F/m
 #define gamma 0.5772156649 //constante de Euler
 #define u_0 2E-4 // [H/km]
+#define carson_terms	120
 
 enum Cable_Models {BERGERON=1, JMARTI};
 enum Installation_Mode {AIR=1, BURIED};
@@ -47,6 +49,18 @@ class Conductor{
 			double rho,mu_r,Rin,Rout;
 			bool Grounded;
 			};
+class Bundle{
+	public:
+		Bundle(){};
+		bool Join(Conductor,double x, double y);
+		unsigned Get_N_Conductors();
+		Conductor Get_Conductor(unsigned N);
+		double Get_RMG();
+	private:
+		std::vector<double> Pos_x,Pos_y;
+	protected:
+		std::vector<Conductor> vCond;
+	};	
 			
 class Insulation{
 		public:
@@ -64,36 +78,34 @@ class Insulation{
 			double eps,mu_r,Rin,Rout;
 			};
 			
-class Cable{
+class Cable: public Bundle{
 		public:
 			Cable(double R);
-			bool Join(Conductor);
 			bool Join(Insulation);
 			bool Assembly();
 			void Print();
 			void Print(double);
 			double Get_R();
-			unsigned Get_N_Conductors();
-			Conductor Get_Conductor(unsigned N);
 			Insulation Get_Insulation(unsigned N);
 		protected:
 			bool Reorder_Conductors();
-			std::vector<Conductor> vCond;
 			std::vector<Insulation> vIso;
 			double R;
 			};
 			
+
 class CableSet{
 		public:
+			CableSet(){};
 			CableSet(double rho, double mu, unsigned Inst);
 			~CableSet();
 			bool Join(Cable,double x, double y);
 			bool Compute_Parameters(double Freq);
 			void Print();
 			double Get_Speed(unsigned Mode);
-			double Get_Zc_Mode(unsigned Mode);
+			double _Complex Get_Zc_Mode(unsigned Mode);
 			double Get_Zc_Phase(unsigned Mode);
-			gsl_matrix* Get_Zc_Mode();
+			gsl_matrix_complex* Get_Zc_Mode();
 			gsl_matrix* Get_Zc_Phase();
 			gsl_matrix* Get_R_Mode();
 			gsl_matrix* Get_R_Phase();
@@ -112,8 +124,9 @@ class CableSet{
 			bool Compute_Y(double Freq);
 			bool Modal_Trans(double Freq);
 			double Distance(unsigned C1,unsigned C2);
-			gsl_matrix_complex *Y,*Z,*Ym,*Zm;
-			gsl_matrix *Zcf,*Zcm,*Rf,*Rm;
+			double Angle(unsigned C1,unsigned C2);
+			gsl_matrix_complex *Y,*Z,*Ym,*Zm,*Zcm,*Gamma;
+			gsl_matrix *Zcf,*Rf,*Rm;
 			gsl_vector_complex *Lambda;//,*Propm;
 			gsl_matrix_complex *Tv_cplx,*Ti_cplx;
 			gsl_matrix *Tv,*Tv_inv,*Ti,*Ti_inv;
@@ -125,5 +138,29 @@ class CableSet{
 			unsigned Type;
 			unsigned N;
 			unsigned Installation;
+	};
+
+class OverHeadLineSet: public CableSet{
+	public:
+		OverHeadLineSet(double rho, double mu);
+		~OverHeadLineSet();
+		bool Join(Conductor,double x, double y, double sag);
+		bool Join(Bundle,double x, double y, double sag);
+		double Distance_Image(unsigned C1,unsigned C2);
+		double Distance(unsigned C1,unsigned C2);
+		double Angle(unsigned C1,unsigned C2);
+		bool Compute_abcd(int terms);
+		double _Complex External_Impedance(double Freq,unsigned C1,unsigned C2);
+		double _Complex Earth_Impedance(double Freq,unsigned C1,unsigned C2);
+			bool Compute_Parameters(double Freq);
+			bool Compute_Z(double Freq);
+			bool Compute_Y(double Freq);
+		bool Compute_Zequ(double D);
+		//bool Print();
+	protected:	
+		gsl_matrix_complex *Theta1, *Theta2, *Theta3, *A, *B;
+		std::vector<Conductor> vConductor;
+		std::vector<Bundle> vBundle;
+		std::vector<double> b,c,d;
 	};
 

@@ -10,7 +10,7 @@ PKG_CHECK_MODULES([DEPS], [gsl])
 #AC_SUBST(DEPS_CFLAGS)
 #AC_SUBST(DEPS_LIBS)
 CPPFLAGS="$CPPFLAGS $DEPS_CFLAGS" 
-LIBS="$DEPS_LIBS $LIBS -lgsl -lblas -lm -lgfortran" 
+LIBS="$DEPS_LIBS $LIBS -lgsl -lgslcblas -lm -lgfortran" 
 
 AC_PREREQ([2.59])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])
@@ -19,10 +19,10 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX
 AC_PROG_F77(gfortran)
 
-#FFLAGS="-g -O2"
-FFLAGS="-O3"
-#CXXFLAGS="-O0 -g3"
-CXXFLAGS="-O3"
+FFLAGS="-g -O0"
+CXXFLAGS="-O0 -g3"
+#FFLAGS="-O3"
+#CXXFLAGS="-O3"
 #LT_INIT([disable-static])
 LT_INIT
 

@@ -44,18 +44,29 @@ double Conductor::Get_rho(){
 	}
 	
 double _Complex Conductor::Inside_Impedance(double Freq){
-	double _Complex m,Z,D;
+	double _Complex m,Z,D, mr;
 	m=csqrt(I*2*M_PI*Freq*mu_0*mu_r/rho);
-	D=besseli(1,m*Rout)*besselk(1,m*Rin)-besseli(1,m*Rin)*besselk(1,m*Rout);
-	Z=((m*rho)/(D*2*M_PI*Rin))*(besseli(0,m*Rin)*besselk(1,m*Rout)+besselk(0,m*Rin)*besseli(1,m*Rout));
+	//mr=Rout*m;
+	if(Rin>0){
+		D=besseli(1,m*Rout)*besselk(1,m*Rin)-besseli(1,m*Rin)*besselk(1,m*Rout);
+		Z=((m*rho)/(D*2*M_PI*Rin))*(besseli(0,m*Rin)*besselk(1,m*Rout)+besselk(0,m*Rin)*besseli(1,m*Rout));
+		}
+	else{
+		Z=((m*rho)/(2*M_PI*Rout))*(besseli(0,m*Rout)/besseli(1,m*Rout));
+		}
+	//std::cout<<Freq<<" "<<Rout<<" "<<creal(m)<<","<<cimag(m)<<" "<<mr<<" "<<besseli(0,m*Rout)<<" "<<besseli(1,m*Rout)<<" "<<Z<<std::endl;
 	return Z;
 	}
 	
 double _Complex Conductor::Outside_Impedance(double Freq){
 	double _Complex m,Z,D;
 	m=csqrt(I*2*M_PI*Freq*mu_0*mu_r/rho);
-	D=besseli(1,m*Rout)*besselk(1,m*Rin)-besseli(1,m*Rin)*besselk(1,m*Rout);
-	Z=((m*rho)/(D*2*M_PI*Rout))*(besseli(0,m*Rout)*besselk(1,m*Rin)+besselk(0,m*Rout)*besseli(1,m*Rin));
+	if(Rin>0){
+		D=besseli(1,m*Rout)*besselk(1,m*Rin)-besseli(1,m*Rin)*besselk(1,m*Rout);
+		Z=((m*rho)/(D*2*M_PI*Rout))*(besseli(0,m*Rout)*besselk(1,m*Rin)+besselk(0,m*Rout)*besseli(1,m*Rin));
+	}
+	else
+		Z=0+0.0*I;
 	return Z;
 	}
 	
@@ -113,9 +124,23 @@ double Cable::Get_R(){
 	return R;
 	}
 	
-bool Cable::Join(Conductor c){
+bool Bundle::Join(Conductor c,double x, double y){
 	vCond.push_back(c);
+	Pos_x.push_back(x);
+	Pos_y.push_back(y);
 	return true;
+	}
+
+double Bundle::Get_RMG(){
+	double rmg=1;
+	for(unsigned k=0;k<vCond.size();k++){
+		rmg*=vCond[k].Get_Rout();
+	for(unsigned j=0;j<vCond.size();j++){
+		if(k!=j)
+			rmg*=sqrt(pow(Pos_x[k]-Pos_x[j],2)+pow(Pos_y[k]-Pos_y[j],2));
+		}
+	}
+	return pow(rmg,1.0/pow(vCond.size(),2));
 	}
 	
 bool Cable::Join(Insulation c){
@@ -149,11 +174,11 @@ bool Cable::Assembly(){
 	return true;
 	}
 
-unsigned  Cable::Get_N_Conductors(){
+unsigned  Bundle::Get_N_Conductors(){
 	return vCond.size();
 	}
 	
-Conductor Cable::Get_Conductor(unsigned N){
+Conductor Bundle::Get_Conductor(unsigned N){
 		return vCond[N];
 	}
 	
@@ -244,12 +269,13 @@ bool CableSet::Compute_Parameters(double Freq){
 		
 	Z=gsl_matrix_complex_alloc(N,N);
 	Y=gsl_matrix_complex_alloc(N,N);
+	Gamma=gsl_matrix_complex_alloc(N,N);
 
 	Zm=gsl_matrix_complex_alloc(N,N);
 	Ym=gsl_matrix_complex_alloc(N,N);
 	
 	Zcf=gsl_matrix_alloc(N,N);
-	Zcm=gsl_matrix_alloc(N,N);
+	Zcm=gsl_matrix_complex_alloc(N,N);
 
 	Rf=gsl_matrix_alloc(N,N);
 	Rm=gsl_matrix_alloc(N,N);
@@ -377,19 +403,19 @@ bool CableSet::Modal_Trans(double Freq){
 //    printf("\nTv\n");
 //    Matrix_Print(Tv_cplx);
 //   	Vector_Print(Lambda);
-    gsl_eigen_nonsymmv_sort(Lambda,Tv_cplx,GSL_EIGEN_SORT_ABS_ASC);
+//    gsl_eigen_nonsymmv_sort(Lambda,Tv_cplx,GSL_EIGEN_SORT_ABS_ASC);
 //    printf("\nTv\n");
 //    Matrix_Print(Tv_cplx);
 //	Vector_Print(Lambda);
 	
    	Matrix_Product(Y,Z,P);
     Eigen(P, Ti_cplx, Lambda);
-//   	printf("\nTi\n");
-//	Matrix_Print(Ti_cplx);
+   	printf("\nTi\n");
+	Matrix_Print(Ti_cplx);
 //	Vector_Print(Lambda);
-    gsl_eigen_nonsymmv_sort(Lambda,Ti_cplx,GSL_EIGEN_SORT_ABS_ASC);
-//	printf("\nTi\n");
-//	Matrix_Print(Ti_cplx);
+//    gsl_eigen_nonsymmv_sort(Lambda,Ti_cplx,GSL_EIGEN_SORT_ABS_ASC);
+	printf("\nTi\n");
+	Matrix_Print(Ti_cplx);
 //	Vector_Print(Lambda);
                    
 
@@ -439,7 +465,7 @@ bool CableSet::Modal_Trans(double Freq){
 //Matrix_Product(gsl_complex_rect(1.0,0.0),CblasNoTrans,P,CblasNoTrans,Tv,gsl_complex_rect(0.0,0.0),Ym);
 
 	Matrix_Transform(Tv_inv,Z,Ti,Zm);
-		Matrix_Transform(Ti_inv,Y,Tv,Ym);
+	Matrix_Transform(Ti_inv,Y,Tv,Ym);
 		
 //			printf("Zm\n");
 //	Matrix_Print(Zm);
@@ -448,10 +474,11 @@ bool CableSet::Modal_Trans(double Freq){
 
 	for(unsigned k=0;k<N;k++){
 		Vel.push_back((2*M_PI*Freq)/cimag(csqrt(vector_get(Lambda,k))));
-		matrix_set(Zcm,k, k, creal(csqrt((matrix_get(Zm,k,k))/matrix_get(Ym,k,k))));
+		matrix_set(Gamma,k, k, (csqrt((matrix_get(Zm,k,k))*matrix_get(Ym,k,k))));
+		matrix_set(Zcm,k, k, (csqrt((matrix_get(Zm,k,k))/matrix_get(Ym,k,k))));
 		matrix_set(Rm,k,k,creal(matrix_get(Zm,k,k)));
 		}
-	Matrix_Transform(Tv,Zcm,Ti_inv,Zcf);
+	//Matrix_Transform(Tv,Zcm,Ti_inv,Zcf);
 	Matrix_Transform(Tv,Rm,Ti_inv,Rf);
 	gsl_matrix_complex_free(P);
 	return true;
@@ -472,14 +499,17 @@ void CableSet::Print(){
 	Matrix_Print(Ym);
 	printf("Zcm\n");
 	Matrix_Print(Zcm);
-	printf("Zcf\n");
-	Matrix_Print(Zcf);
+	printf("Gamma\n");
+	Matrix_Print(Gamma);
 	printf("\n");
-	printf("Velocity\n");
-	for(unsigned k=0;k<N;k++){
-		printf("%E ",Vel[k]);
-		}	
-	printf("\n");
+//	printf("Zcf\n");
+//	Matrix_Print(Zcf);
+//	printf("\n");
+//	printf("Velocity\n");
+//	for(unsigned k=0;k<N;k++){
+//		printf("%E ",Vel[k]);
+//		}	
+//	printf("\n");
 	}
 	
 gsl_matrix* CableSet::Get_Ti(){
@@ -496,7 +526,7 @@ gsl_matrix* CableSet::Get_Tv_Inverse(){
 	}
 			
 
-gsl_matrix* CableSet::Get_Zc_Mode(){
+gsl_matrix_complex* CableSet::Get_Zc_Mode(){
 	return Zcm;
 	}
 gsl_matrix* CableSet::Get_Zc_Phase(){
@@ -516,9 +546,9 @@ gsl_matrix* CableSet::Get_R_Phase(){
 	return 0;
 	}
 	
-double CableSet::Get_Zc_Mode(unsigned Mode){
+double _Complex CableSet::Get_Zc_Mode(unsigned Mode){
 	if((Mode<Zcm->size1)&&(Mode<Zcm->size2))
-		return gsl_matrix_get(Zcm,Mode,Mode);
+		return g2c(gsl_matrix_complex_get(Zcm,Mode,Mode));
 	return 0;
 	}
 
@@ -552,3 +582,314 @@ CableSet::~CableSet(){
 	}
  }
 	
+
+OverHeadLineSet::OverHeadLineSet(double r,double u){
+	rho=r;
+	mu_r=u;
+	Type=BERGERON;
+	Compute_abcd(carson_terms);
+	}
+
+bool OverHeadLineSet::Join(Conductor c,double x, double y, double sag){
+	Bundle B1;
+	B1.Join(c,x,y);
+	vBundle.push_back(B1);
+	Pos_x.push_back(x);
+	Pos_y.push_back(y+sag/3.0);
+	}
+
+bool OverHeadLineSet::Join(Bundle b,double x, double y, double sag){
+	vBundle.push_back(b);
+	Pos_x.push_back(x);
+	Pos_y.push_back(y+sag/3.0);
+	}
+
+double OverHeadLineSet::Angle(unsigned C1,unsigned C2){
+	if((C1<vConductor.size())&&(C2<vConductor.size()))
+		return asin((Pos_x[C2]-Pos_x[C1])/Distance_Image(C1,C2));
+	return 0;
+	}
+
+double OverHeadLineSet::Distance_Image(unsigned C1,unsigned Ci2){
+	if((C1<vConductor.size())&&(Ci2<vConductor.size()))
+		return sqrt(pow(Pos_x[C1]-Pos_x[Ci2],2)+pow(Pos_y[C1]+Pos_y[Ci2],2));
+	return 0;
+	}
+
+double OverHeadLineSet::Distance(unsigned C1,unsigned Ci2){
+	if((C1<vConductor.size())&&(Ci2<vConductor.size()))
+		return sqrt(pow(Pos_x[C1]-Pos_x[Ci2],2)+pow(Pos_y[C1]-Pos_y[Ci2],2));
+	return 0;
+	}
+
+double _Complex OverHeadLineSet::External_Impedance(double Freq,unsigned C1,unsigned C2){
+	if((C1<vConductor.size())&&(C2<vConductor.size())){
+		double _Complex Z;
+		if(C1==C2)
+			Z=I*Freq*mu_0*log(Distance_Image(C1,C2)/vConductor[C1].Get_Rout());
+		else
+			Z=I*Freq*mu_0*log(Distance_Image(C1,C2)/Distance(C1,C2));
+		return Z;
+		}
+	return 0+0*I;
+	}
+double _Complex OverHeadLineSet::Earth_Impedance(double Freq,unsigned C1,unsigned C2){
+	if((C1<vConductor.size())&&(C2<vConductor.size())){
+		double _Complex z,m;
+		double a, dR,dX, theta,D;
+		a=4*M_PI*sqrt(5)*1E-4*Distance_Image(C1,C2)*sqrt(Freq/rho);
+		theta=Angle(C1,C2);
+		dR=M_PI/8;
+		dX=0.5*(0.6159315-log(a));
+		for(unsigned k=1;k<carson_terms;k+=4){
+		dR+=-b[k]*pow(a,k)*cos(theta*k);
+		dR+=b[k+1]*((c[k+1]-log(a))*pow(a,k+1)*cos((k+1)*theta)+theta*pow(a,k+1)*sin((k+1)*theta));
+		dR+=b[k+2]*pow(a,k+2)*cos(theta*(k+2));
+		dR-=d[k+3]*pow(a,k+3)*cos(theta*(k+3));
+		
+		dX+=b[k]*pow(a,k)*cos(theta*k);
+		dX-=d[k+1]*pow(a,k+1)*cos(theta*(k+1));
+		dX-=b[k+2]*pow(a,k+2)*cos(theta*(k+2));
+		dX-=b[k+3]*((c[k+3]-log(a))*pow(a,k+3)*cos((k+3)*theta)+theta*pow(a,k+3)*sin((k+3)*theta));
+
+		}
+		dR*=4*2*M_PI*Freq*1E-7;
+		dX*=4*2*M_PI*Freq*1E-7;
+		//z=((rho*m)/(2*M_PI*r))*(besselk(0,m*r)/besselk(1,m*r));
+		return dR+dX*I;;
+		}
+	return 0+0*I;
+	}
+
+
+bool OverHeadLineSet::Compute_abcd(int terms){
+	b.resize(terms+1);
+	d.resize(terms+1);
+	c.resize(terms+1);
+	b[1]=(sqrt(2.0)/6);
+	b[2]=(1.0/16);
+	c[2]=1.3659315;
+	d[1]=b[1]*M_PI/4;
+	d[2]=b[2]*M_PI/4;
+	double sig=1;
+	for(unsigned k=3;k<=terms;k++){
+		if((k%4)==1)
+			sig=-sig;
+		b[k]=sig*fabs(b[k-2])*1.0/(k*(k+2));
+		}
+	for(unsigned k=0;k<=terms;k++){
+		d[k]=b[k]*M_PI/4;
+		}
+	for(unsigned k=4;k<=terms;k++)
+		c[k]=c[k-2]+1.0/k+1.0/(k+2);
+	for(unsigned k=0;k<=terms;k++){
+		std::cout<<"B["<<k<<"]="<<b[k]<<" C["<<k<<"]="<<c[k]<<" D["<<k<<"]="<<d[k]<<std::endl;
+		}
+	return true;
+	}
+
+OverHeadLineSet::~OverHeadLineSet(){
+	if(N>0){
+	//free(Pi);free(P0);free(Zi);free(Z0);
+	free(Y);free(Z);free(Ym);free(Zm);
+	free(Lambda);free(Tv);free(Tv_inv);free(Ti);free(Ti_inv);
+	}
+}
+
+
+bool OverHeadLineSet::Compute_Parameters(double Freq){
+	N=vConductor.size();
+		
+	Z=gsl_matrix_complex_alloc(N,N);
+	Gamma=gsl_matrix_complex_alloc(N,N);
+	Y=gsl_matrix_complex_alloc(N,N);
+;
+
+	Zm=gsl_matrix_complex_alloc(N,N);
+	Ym=gsl_matrix_complex_alloc(N,N);
+	
+	Zcf=gsl_matrix_alloc(N,N);
+	Zcm=gsl_matrix_complex_alloc(N,N);
+
+	Rf=gsl_matrix_alloc(N,N);
+	Rm=gsl_matrix_alloc(N,N);
+
+	
+	Lambda=gsl_vector_complex_alloc(N);
+	Tv_cplx=gsl_matrix_complex_alloc(N,N);
+	Ti_cplx=gsl_matrix_complex_alloc(N,N);
+	Tv=gsl_matrix_alloc(N,N);
+	Ti=gsl_matrix_alloc(N,N);
+	Ti_inv=gsl_matrix_alloc(N,N);
+	Tv_inv=gsl_matrix_alloc(N,N);
+
+	Compute_Z(Freq);
+	Compute_Y(Freq);
+	Modal_Trans(Freq);
+	return true;
+	}
+
+
+bool OverHeadLineSet::Compute_Z(double Freq){
+	double _Complex Zint,Zext,Zearth;
+	for(unsigned k=0;k<N;k++)
+	for(unsigned j=k;j<N;j++){
+		if(k==j)
+			Zint=vConductor[k].Inside_Impedance(Freq);
+		else
+			Zint=0+0*I;
+		Zearth=Earth_Impedance(Freq,k,j);
+		Zext=External_Impedance(Freq,k,j);
+		//std::cout<<k<<" "<<j<<" "<<creal(Zext)<<","<<cimag(Zext)<<"\t"<<creal(Zint)<<","<<cimag(Zint)<<"\t"<<creal(Zearth)<<","<<cimag(Zearth)<<std::endl;
+		matrix_set(Z,k,j,Zext+Zint+Zearth);
+		matrix_set(Z,j,k,Zext+Zint+Zearth);
+		}
+	return true;
+	}
+
+
+bool OverHeadLineSet::Compute_Y(double Freq){
+	double _Complex p;
+	for(unsigned k=0;k<N;k++)
+		for(unsigned j=k;j<N;j++){
+			if(k==j)
+				p=log(Distance_Image(k,j)/vConductor[k].Get_Rout());	
+			else
+				p=log(Distance_Image(k,j)/Distance(k,j));
+			p/=2*M_PI*eps_0;
+			matrix_set(Y,k,j,p);
+			matrix_set(Y,j,k,p);
+			}
+	Matrix_Inverse(Y);
+	Matrix_Scale(Y,2*M_PI*Freq*I);
+	return true;
+	}
+
+bool OverHeadLineSet::Compute_Zequ(double D){
+	gsl_matrix_complex *Temp1,*Temp2,*Temp3;
+	N=vConductor.size();
+	Theta1=gsl_matrix_complex_alloc(N,N);
+	Theta2=gsl_matrix_complex_alloc(N,N);
+	Theta3=gsl_matrix_complex_alloc(N,N);
+
+	Temp1=gsl_matrix_complex_alloc(N,N);
+	Temp2=gsl_matrix_complex_alloc(N,N);
+	Temp3=gsl_matrix_complex_alloc(N,N);
+
+	A=gsl_matrix_complex_alloc(N,N);
+	B=gsl_matrix_complex_alloc(N,N);
+	for(unsigned k=0;k<N;k++){
+		matrix_set(Theta1,k,k,csinh(matrix_get(Gamma,k,k)*D/matrix_get(Zcm,k,k)));
+		matrix_set(Theta2,k,k,ccosh(matrix_get(Gamma,k,k)*D));
+		matrix_set(Theta3,k,k,matrix_get(Zcm,k,k)*csinh(matrix_get(Gamma,k,k)*D));
+		}
+	/*std::cout<<"-----Theta1-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Theta1,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}
+	std::cout<<"-----Theta2-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Theta2,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}
+	std::cout<<"-----Theta3-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Theta3,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}*/
+	Matrix_Inverse(Theta3);
+	Matrix_Transform(Ti_cplx,Theta2,Theta3,Temp1);
+	Matrix_Product(c2g(1.0+0*I), CblasNoTrans, Temp1, CblasTrans, Ti_cplx,c2g(0.0+0*I) ,A);
+
+	std::cout<<"-----A-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(A,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}
+	double _Complex Sa=0+0*I;
+	for(unsigned k=0;k<N;k++)
+		for(unsigned j=0;j<N;j++)
+			Sa+=matrix_get(A,k,j);
+	std::cout<<"-----Sa="<<creal(Sa)<<","<<cimag(Sa)<<std::endl;
+
+	Matrix_Transform(Ti_cplx,Theta1,Temp2,B); 
+	Matrix_Product(Temp1,Theta2,Temp3);
+	Matrix_Product(c2g(-1.0+0*I), CblasNoTrans,Temp3, CblasConjTrans, Ti_cplx,c2g(-1.0+0*I) ,B);
+	
+
+	std::cout<<"-----B-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(B,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}
+	double _Complex Sb=0+0*I;
+	for(unsigned k=0;k<N;k++)
+		for(unsigned j=0;j<N;j++)
+			Sb+=matrix_get(B,k,j);
+	std::cout<<"-----Sb="<<creal(Sb)<<","<<cimag(Sb)<<std::endl;
+	
+	double _Complex ZcEq,GammaEq;
+	D/=1000;
+	GammaEq=(1.0/D)*cacosh(-Sa/Sb);
+	ZcEq=-1.0/(Sb*csinh(GammaEq*D));
+
+	std::cout<<"-----GammaEq="<<creal(GammaEq)<<","<<cimag(GammaEq)<<std::endl;
+	std::cout<<"-----ZcEq="<<creal(ZcEq)<<","<<cimag(ZcEq)<<std::endl;
+	return true;
+	}
+/*
+bool OverHeadLineSet::Print(){
+	std::cout<<"-----Z-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Z,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+		}
+	std::cout<<"-----Y-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Y,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+	}
+
+
+	std::cout<<"-----Zm-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Zm,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+	}
+	std::cout<<"-----Ym-----"<<std::endl;
+	for(unsigned k=0;k<N;k++){
+		for(unsigned j=0;j<N;j++){
+			double _Complex Imp=matrix_get(Ym,k,j);
+			std::cout<<creal(Imp)<<","<<cimag(Imp)<<"\t";
+			}
+		std::cout<<std::endl;
+	}
+	return true;
+	}*/
+
+

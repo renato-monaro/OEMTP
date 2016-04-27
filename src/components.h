@@ -168,7 +168,7 @@ namespace oemtp{
 			double Phase;
 			double T;
 		};
-		
+/*		
 	class Lossless_Line: public Component{
 		public:
 			Lossless_Line(string N1,string N2,double d, double l, double c, double dT);
@@ -258,6 +258,6 @@ namespace oemtp{
 			unsigned nModes;
 		};
 	
-	
+*/	
 }
 #endif
