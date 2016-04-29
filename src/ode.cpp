@@ -63,6 +63,7 @@ int Inductor_ODE::Function (double t, const double y[], double f[], void *params
   return GSL_SUCCESS;
   }
 int Inductor_ODE::Jacobian (double t, const double y[], double *dfdy, double dfdt[], void *params){
+
   return  GSL_SUCCESS;
 	}
 		
