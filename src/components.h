@@ -133,6 +133,7 @@ namespace oemtp{
 			Inductor(string N1,string N2,double L, double dT);
 			bool Compute_Ih(bool e);
 			bool Set_Value(double Val);
+			bool Init(double Ic);
 		};
 			
 	class Capacitor:public Component{
@@ -140,6 +141,7 @@ namespace oemtp{
 			Capacitor(string N1,string N2,double C, double dT);
 			bool Compute_Ih(bool e);
 			bool Set_Value(double Val);
+			bool Init(double V);
 		};
 		
 	class Current_Source:public Component{
@@ -168,7 +170,7 @@ namespace oemtp{
 			double Phase;
 			double T;
 		};
-/*		
+		
 	class Lossless_Line: public Component{
 		public:
 			Lossless_Line(string N1,string N2,double d, double l, double c, double dT);
@@ -177,6 +179,7 @@ namespace oemtp{
 			bool Compute_Ih(bool e);
 			bool Set_Value(double p);
 			bool Reset();
+			bool Init(double Ik, double Im,double Vk, double Vm);
 		protected:
 			double Zc;
 			double Tau;
@@ -194,6 +197,7 @@ namespace oemtp{
 			bool Compute_Ih(bool e);
 			bool Set_Value(double p);
 			bool Reset();
+			bool Init(double Ik, double Im,double Vk, double Vm);
 		protected:
 			double Zc;
 			double R;
@@ -203,6 +207,7 @@ namespace oemtp{
 			gsl_vector *Vm,*Vk,*Ikm,*Imk;
 			double Vk_tau,Ikm_tau, Vm_tau,Imk_tau, alpha;
 		};
+/*
 		
 //	class MLine: public Component{
 //		public:

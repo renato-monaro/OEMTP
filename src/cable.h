@@ -82,6 +82,7 @@ class Cable: public Bundle{
 		public:
 			Cable(double R);
 			bool Join(Insulation);
+			bool Join(Conductor);
 			bool Assembly();
 			void Print();
 			void Print(double);

@@ -30,8 +30,7 @@ AC_SUBST([OEMTP_SO_VERSION], [1:2:0])
 AC_SUBST([OEMTP_API_VERSION], [2.0])
 
 AC_ARG_WITH([openrelay],
-[AS_HELP_STRING([--with-openrelay],[OpenRelay Support])],
-[],[with_openrelay=no])
+[AS_HELP_STRING([--with-openrelay],[OpenRelay Support])],[],[with_openrelay=no])
 AS_IF(	[test "x$with_openrelay" != xno],
 	[
 		#Set up OpenRelay
@@ -40,8 +39,7 @@ AS_IF(	[test "x$with_openrelay" != xno],
 	)
 	
 AC_ARG_WITH([debug],
-[AS_HELP_STRING([--with-debug],[Debug])],
-[],[with_debug=no])
+[AS_HELP_STRING([--with-debug],[Debug])],[],[with_debug=no])
 AS_IF(	[test "x$with_debug" != xno],
 	[
 		#Set up OpenRelay

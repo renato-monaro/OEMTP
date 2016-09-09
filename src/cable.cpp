@@ -147,6 +147,12 @@ bool Cable::Join(Insulation c){
 	vIso.push_back(c);
 	return true;
 	}
+
+bool Cable::Join(Conductor c){
+	vCond.push_back(c);
+	return true;
+	}
+
 	
 bool Cable::Reorder_Conductors(){
 	for(unsigned k=0;k<vCond.size();k++){

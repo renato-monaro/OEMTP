@@ -420,6 +420,11 @@ bool Inductor::Set_Value(double value){
 	Changed=true;
 	return true;
 	}
+
+bool Inductor::Init(double Ii){	
+	gsl_vector_set(Ic,0,Ii);
+	return true;
+	}
 	
 Capacitor::Capacitor(string N1,string N2, double C, double dT){
 	Alias.push_back(N1);
@@ -442,8 +447,13 @@ bool Capacitor::Set_Value(double value){
 		gsl_matrix_set(Reff,0,0,dt/(2*value));
 	Changed=true;
 	return true;
-	}	
-/*
+	}
+
+bool Capacitor::Init(double V){	
+	gsl_vector_set(&View_V_Pri.vector,0,V);
+	return true;
+	}
+
 	
 Lossless_Line::Lossless_Line(string N1,string N2,double d, double l, double c,double dT){
 	Alias.push_back(N1);
@@ -519,7 +529,7 @@ Lossless_Line::Lossless_Line(string N1,string N2, double Z, double T, double dT)
 	}
 	
 bool Lossless_Line::Compute_Ih(bool e){
-	//cout<<"LossLessLine Zc:"<<Zc<<" "<<"Tau:"<<Tau<<" "<<"Keff:"<<k_eff<<" "<<"Ks:"<<k_sup<<" "<<"Ki:"<<k_inf<<" "<<endl;
+	cout<<"LossLessLine Zc:"<<Zc<<" "<<"Tau:"<<Tau<<" "<<"Keff:"<<k_eff<<" "<<"Ks:"<<k_sup<<" "<<"Ki:"<<k_inf<<" "<<endl;
 	for(unsigned k=k_sup;k>0;k--){
 		gsl_vector_set(Vk,k,gsl_vector_get(Vk,k-1));
 		gsl_vector_set(Vm,k,gsl_vector_get(Vm,k-1));
@@ -565,6 +575,18 @@ bool Lossless_Line::Reset(){
 	gsl_vector_set_zero(Vk);
 	gsl_vector_set_zero(Ikm);
 	gsl_vector_set_zero(Imk);
+	return true;
+	}
+
+bool Lossless_Line::Init(double Iki, double Imi,double Vki, double Vmi){
+	gsl_vector_set(Ic,0,Iki);
+	gsl_vector_set(Ic,1,Imi);
+	gsl_vector_set(&View_V_Pri.vector,0,Vki);
+	gsl_vector_set(&View_V_Pri.vector,1,Vmi);
+	gsl_vector_set_all(Vm,Vmi);
+	gsl_vector_set_all(Vk,Vki);
+	gsl_vector_set_all(Ikm,Iki);
+	gsl_vector_set_all(Imk,Imi);
 	return true;
 	}
 	
@@ -652,6 +674,10 @@ bool Line::Compute_Ih(bool e){
 		gsl_vector_set(Imk,k,gsl_vector_get(Imk,k-1));
 		gsl_vector_set(Ikm,k,gsl_vector_get(Ikm,k-1));
 		}
+	/*cout<<"Hist:";
+	for(unsigned k=k_sup;k>0;k--){
+		cout<<gsl_vector_get(Vk,k)<<" ";
+		}*/
 	gsl_vector_set(Ikm,0,gsl_vector_get(Ic,0));
 	gsl_vector_set(Imk,0,gsl_vector_get(Ic,1));
 	gsl_vector_set(Vk,0,gsl_vector_get(&View_V_Pri.vector,0));
@@ -693,7 +719,20 @@ bool Line::Reset(){
 	gsl_vector_set_zero(Imk);
 	return true;
 	}
-	
+
+bool Line::Init(double Iki, double Imi,double Vki, double Vmi){
+	gsl_vector_set(Ic,0,Iki);
+	gsl_vector_set(Ic,1,Imi);
+	gsl_vector_set(&View_V_Pri.vector,0,Vki);
+	gsl_vector_set(&View_V_Pri.vector,1,Vmi);
+	gsl_vector_set_all(Vm,Vmi);
+	gsl_vector_set_all(Vk,Vki);
+	gsl_vector_set_all(Ikm,Iki);
+	gsl_vector_set_all(Imk,Imi);
+	return true;
+	}
+
+/*	
 //MLine::MLine(CableSet *C, vector<string> N, double l, double dT){
 //	nModes=C->Get_N_Modes();
 //	if((N.size()/2)!=nModes){
