@@ -1,0 +1,32 @@
+@Simulation
+
+DT ; 0.001
+#DT ; 1E-6
+et; 0.3
+
+@circuit
+
+E1 ; ac_source ;N1 TERRA; 4 60 0 0.01
+S1 ; switch ; N1 N2 ;
+R1 ; resistor;N2   N3  ;   2.0
+L1 ; inductor;  N3    N4   ;   10.0E-3
+# XL  = 3.77
+C1 ; capacitor;N4 TERRA; 200.0E-6
+V1 ; voltmeter; N1 TERRA;
+# XC = 13.26
+
+@Measure
+#output   ; output.txt
+sampling ; 5
+V(C1) 
+I(C1)
+V[E1]
+v(R1)
+
+@Action
+open   S1 0.10
+close  S1 0.03
+change E1 0.235 9 120 0 
+close  S1 0.15
+
+
