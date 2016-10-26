@@ -1,5 +1,5 @@
 #
-AC_INIT([OpenEMTP], [2.0], [],[oemtp],[http://usp.br])
+AC_INIT([OpenEMTP], [3.0], [],[oemtp],[http://usp.br])
 
 AC_LANG(C++)
 #libboost1.46
@@ -9,14 +9,15 @@ AC_LANG(C++)
 PKG_CHECK_MODULES([DEPS], [gsl])
 #AC_SUBST(DEPS_CFLAGS)
 #AC_SUBST(DEPS_LIBS)
-CPPFLAGS="$CPPFLAGS $DEPS_CFLAGS -std=c++11" 
-LIBS="$DEPS_LIBS $LIBS -lgsl -lgslcblas -lm -lgfortran" 
+CPPFLAGS="$CPPFLAGS $DEPS_CFLAGS -std=gnu++11" 
+LIBS="$DEPS_LIBS $LIBS -lgsl -lblas -lm -lgfortran" 
 
 AC_PREREQ([2.59])
 AM_INIT_AUTOMAKE([1.10 -Wall no-define])
 
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_CXX
+AC_PROG_CC
 AC_PROG_F77(gfortran)
 
 FFLAGS="-g -O0"
@@ -26,15 +27,15 @@ CXXFLAGS="-O0 -g3"
 #LT_INIT([disable-static])
 LT_INIT
 
-AC_SUBST([OEMTP_SO_VERSION], [1:2:0])
-AC_SUBST([OEMTP_API_VERSION], [2.0])
+AC_SUBST([OEMTP_SO_VERSION], [1:3:0])
+AC_SUBST([OEMTP_API_VERSION], [3.0])
 
 AC_ARG_WITH([openrelay],
 [AS_HELP_STRING([--with-openrelay],[OpenRelay Support])],[],[with_openrelay=no])
 AS_IF(	[test "x$with_openrelay" != xno],
 	[
 		#Set up OpenRelay
-		CPPFLAGS="-DOPENRELAY `pkg-config openrelay-1.0 --cflags --libs` -lboost -lpthread  -lboost_date_time-mt -lboost_thread-mt $CPPFLAGS"
+		CPPFLAGS="-DOPENRELAY `pkg-config openrelay-3.0 --cflags --libs` -lboost -lpthread  -lboost_date_time-mt -lboost_thread-mt $CPPFLAGS"
 	]
 	)
 	
