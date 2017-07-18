@@ -24,7 +24,7 @@
 using namespace std;
 using namespace oemtp;
 
-
+/*
 			
 Transformer::Transformer(string N1a, string N1b, string N2a, string N2b,double Lkk, double Lkm,double Lmk, double Lmm, double dT){
 	cout<<"Lkk:"<<Lkk<<" Lkm:"<<Lkm<<" Lmk:"<<Lmk<<" Lmm:"<<Lmm<<endl;
@@ -67,5 +67,5 @@ bool Transformer::Compute_Ih(bool e){
 	return true;
 	}
 	
-
+*/
 

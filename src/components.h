@@ -244,7 +244,7 @@ namespace oemtp{
 
 //		};
 		
-	class MLine2: public Component{
+/*	class MLine2: public Component{
 		public:
 			MLine2(CableSet *C, vector<string> N, double l, double dT);
 			bool Compute_Ih(bool e);
@@ -257,7 +257,7 @@ namespace oemtp{
 			gsl_vector *V_Pri_MODE;
 			gsl_vector *I_Hist_Pri_MODE;
 			unsigned nModes;
-		};
+		};*/
 
 struct IM_ODE_Data{
 	double u1a, u1b, u1c;

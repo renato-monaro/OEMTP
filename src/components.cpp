@@ -781,7 +781,7 @@ bool Line::Reset(){
 //	return true;
 //	}
 	
-	
+/*	
 MLine2::MLine2(CableSet *C, vector<string> N, double l, double dT){
 	nModes=C->Get_N_Modes();
 	if((N.size()/2)!=nModes){
@@ -853,7 +853,7 @@ bool MLine2::Reset(){
 		}
 	return true;
 	}
-
+*/
 InductionMachine::InductionMachine(string N1, string N2, string N3, double r1, double r2, double l1, double l2, double lh, double jj, double kd, int p, double mt, double Dt) {
 	
 	Alias.push_back(N1);
