@@ -1,5 +1,7 @@
 /**
  *  Copyright 2015 by Renato Monaro and Silvio Giuseppe
+ *  Copyright 2016 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
+ *  Copyright 2017 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
  *
  * This file is part of Open Electromagnetic Transient Program - OEMTP.
  * 
@@ -30,6 +32,8 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_odeiv2.h>
+#include <gsl/gsl_errno.h>
 #include <vector>
 #include <math.h>
 #include <complex.h>      // std::complex
@@ -53,8 +57,6 @@ namespace oemtp{
 			bool Compute_Gpr();
 			bool Compute_I();
 			double Get_I(unsigned N);
-			bool Set_V(unsigned N, double Val);
-			bool Set_I(unsigned N, double Val);
 			double Get_V(unsigned N);
 			unsigned Get_N_Branches();
 			unsigned Get_N_Nodes();
@@ -62,7 +64,6 @@ namespace oemtp{
 			string Get_Alias(unsigned Al);
 			bool G_Changed();
 			bool Set_Value(unsigned k, unsigned l,double);
-			double Get_Value(unsigned k, unsigned l);
 			virtual bool Reset();
 		protected:
 			gsl_matrix_view View_Gpr;
@@ -133,7 +134,6 @@ namespace oemtp{
 			Inductor(string N1,string N2,double L, double dT);
 			bool Compute_Ih(bool e);
 			bool Set_Value(double Val);
-			bool Init(double Ic);
 		};
 			
 	class Capacitor:public Component{
@@ -141,7 +141,6 @@ namespace oemtp{
 			Capacitor(string N1,string N2,double C, double dT);
 			bool Compute_Ih(bool e);
 			bool Set_Value(double Val);
-			bool Init(double V);
 		};
 		
 	class Current_Source:public Component{
@@ -162,8 +161,8 @@ namespace oemtp{
 		public:
 			AC_Source(string N1,string N2,double Vol,double F, double A,double Res,double dT);
 			bool Compute_Ih(bool e);
-			void Set_Frequency(double);
 			void Set_Voltage(double);
+			void Set_Frequency(double); 
 			void Set_Angle(double);
 			protected:
 			double Frequency;
@@ -179,7 +178,6 @@ namespace oemtp{
 			bool Compute_Ih(bool e);
 			bool Set_Value(double p);
 			bool Reset();
-			bool Init(double Ik, double Im,double Vk, double Vm);
 		protected:
 			double Zc;
 			double Tau;
@@ -197,7 +195,6 @@ namespace oemtp{
 			bool Compute_Ih(bool e);
 			bool Set_Value(double p);
 			bool Reset();
-			bool Init(double Ik, double Im,double Vk, double Vm);
 		protected:
 			double Zc;
 			double R;
@@ -207,7 +204,6 @@ namespace oemtp{
 			gsl_vector *Vm,*Vk,*Ikm,*Imk;
 			double Vk_tau,Ikm_tau, Vm_tau,Imk_tau, alpha;
 		};
-/*
 		
 //	class MLine: public Component{
 //		public:
@@ -262,7 +258,37 @@ namespace oemtp{
 			gsl_vector *I_Hist_Pri_MODE;
 			unsigned nModes;
 		};
+
+struct IM_ODE_Data{
+	double u1a, u1b, u1c;
+	double R1;
+	double R2;
+	double L1;
+	double L2;
+	double LH;
+	double sig;
+	double JJ;
+	double KD;
+	unsigned P;
+	double dt;
+	double MT;
+	double w1, wl;
+};
+
+	class InductionMachine:public Component{
+		public:
+			InductionMachine(string N1, string N2, string N3, double r1, double r2, double l1, double l2, double lh, double jj, double kd, int p, double mt, double Dt);
+			bool Compute_Ih(bool e);
+			static int func (double t, const double Y[], double F[], void *params);
+			double Get_Speed();
+			void Set_Mec_Torque(double);
+			double Get_Torque();
+		protected:
+			struct IM_ODE_Data data;
+			double y[7];
+			double T;
+		};
 	
-*/	
+	
 }
 #endif

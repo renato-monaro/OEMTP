@@ -16,8 +16,8 @@ V1 ; voltmeter; N1 TERRA;
 # XC = 13.26
 
 @Measure
-#output   ; output.txt
-sampling ; 5
+output   ; output.txt
+sampling ; 1
 V(C1) 
 I(C1)
 V[E1]

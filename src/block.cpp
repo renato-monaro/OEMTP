@@ -44,6 +44,10 @@ string Block::Get_Block_Name(){
 void Block::Set_Block_Name(string N){
 	Block_Name=N;
 	}
+
+string Block::Get_Component_Block_Name(unsigned N){
+	return vComponentsName.at(N);
+}
 	
 Converter::Converter(string Name,string Na,string Nb,string Nc,string Np,string Nn, double L, double R, double C, double dt){
 	Block_Name=Name;
@@ -79,26 +83,40 @@ Converter::Converter(string Name,string Na,string Nb,string Nc,string Np,string 
 	vComponents.push_back(La); vComponents.push_back(Lb); vComponents.push_back(Lc);
 	vComponents.push_back(Ra); vComponents.push_back(Rb); vComponents.push_back(Rc);
 	vComponents.push_back(Cp); vComponents.push_back(Cn); 
+
+	vComponentsName.push_back("S1"); vComponentsName.push_back("S2"); vComponentsName.push_back("S3");
+	vComponentsName.push_back("S4"); vComponentsName.push_back("S5"); vComponentsName.push_back("S6");
+	vComponentsName.push_back("D1"); vComponentsName.push_back("D2"); vComponentsName.push_back("D3");
+	vComponentsName.push_back("D4"); vComponentsName.push_back("D5"); vComponentsName.push_back("D6");
+	vComponentsName.push_back("La"); vComponentsName.push_back("Lb"); vComponentsName.push_back("Lc");
+	vComponentsName.push_back("Ra"); vComponentsName.push_back("Rb"); vComponentsName.push_back("Rc");
+	vComponentsName.push_back("Cp"); vComponentsName.push_back("Cn"); 
 	}
 	
 Converter::Converter(string Name,string Na,string Nb,string Nc,string Np,string Nn){
 	Block_Name=Name;
-	S1=new Switch(Np,Na);
-	S2=new Switch(Na,Nn);
-	S3=new Switch(Np,Nb);
-	S4=new Switch(Nb,Nn);
-	S5=new Switch(Np,Nc);
-	S6=new Switch(Nc,Nn);
+	S1=new Switch(Np,Na+Block_Name+"002");
+	S2=new Switch(Na+Block_Name+"002",Nn);
+	S3=new Switch(Np,Nb+Block_Name+"002");
+	S4=new Switch(Nb+Block_Name+"002",Nn);
+	S5=new Switch(Np,Nc+Block_Name+"002");
+	S6=new Switch(Nc+Block_Name+"002",Nn);
 	
-	D1=new Diode(Na,Np);
-	D2=new Diode(Nn,Na);
-	D3=new Diode(Nb,Np);
-	D4=new Diode(Nn,Nb);
-	D5=new Diode(Nc,Np);
-	D6=new Diode(Nn,Nc);
+	D1=new Diode(Na+Block_Name+"002",Np);
+	D2=new Diode(Nn,Na+Block_Name+"002");
+	D3=new Diode(Nb+Block_Name+"002",Np);
+	D4=new Diode(Nn,Nb+Block_Name+"002");
+	D5=new Diode(Nc+Block_Name+"002",Np);
+	D6=new Diode(Nn,Nc+Block_Name+"002");
 	
 	vComponents.push_back(S1); vComponents.push_back(S2); vComponents.push_back(S3);
 	vComponents.push_back(S4); vComponents.push_back(S5); vComponents.push_back(S6);
 	vComponents.push_back(D1); vComponents.push_back(D2); vComponents.push_back(D3);
 	vComponents.push_back(D4); vComponents.push_back(D5); vComponents.push_back(D6);
+
+	vComponentsName.push_back("S1"); vComponentsName.push_back("S2"); vComponentsName.push_back("S3");
+	vComponentsName.push_back("S4"); vComponentsName.push_back("S5"); vComponentsName.push_back("S6");
+	vComponentsName.push_back("D1"); vComponentsName.push_back("D2"); vComponentsName.push_back("D3");
+	vComponentsName.push_back("D4"); vComponentsName.push_back("D5"); vComponentsName.push_back("D6");
+
 	}

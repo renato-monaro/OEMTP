@@ -1,5 +1,7 @@
 /**
  *  Copyright 2015 by Renato Monaro and Silvio Giuseppe
+ *  Copyright 2016 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
+ *  Copyright 2017 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
  *
  * This file is part of Open Electromagnetic Transient Program - OEMTP.
  * 
@@ -76,25 +78,10 @@ double Component::Get_I(unsigned N){
 	return GSL_NAN;
 	}
 	
-bool Component::Set_I(unsigned N, double Val){
-	if(N<Ic->size){
-		gsl_vector_set(Ic,N,Val);
-		return true;
-		}
-	return false;
-	}
 double Component::Get_V(unsigned N){
 	if(N<View_V_Pri.vector.size)
 		return gsl_vector_get(&View_V_Pri.vector,N);
 	return GSL_NAN;
-	}
-
-bool Component::Set_V(unsigned N, double Val){
-	if(N<View_V_Pri.vector.size){
-		gsl_vector_set(&View_V_Pri.vector,N,Val);
-		return true;
-		}
-	return false;
 	}
 
 bool Component::Compute_Gpr(){
@@ -132,14 +119,7 @@ bool Component::Set_Value(unsigned k, unsigned l,double value){
 		}
 	return false;
 	}
-		
-double Component::Get_Value(unsigned k, unsigned l){
-	if((k<Reff->size1)&&(l<Reff->size2)){
-		return gsl_matrix_get(Reff,k,l);
-		}
-	return -1;
-	}
-	
+			
 Resistor::Resistor(string N1,string N2,double Res){
 	Alias.push_back(N1);
 	Alias.push_back(N2);
@@ -420,11 +400,6 @@ bool Inductor::Set_Value(double value){
 	Changed=true;
 	return true;
 	}
-
-bool Inductor::Init(double Ii){	
-	gsl_vector_set(Ic,0,Ii);
-	return true;
-	}
 	
 Capacitor::Capacitor(string N1,string N2, double C, double dT){
 	Alias.push_back(N1);
@@ -447,12 +422,7 @@ bool Capacitor::Set_Value(double value){
 		gsl_matrix_set(Reff,0,0,dt/(2*value));
 	Changed=true;
 	return true;
-	}
-
-bool Capacitor::Init(double V){	
-	gsl_vector_set(&View_V_Pri.vector,0,V);
-	return true;
-	}
+	}	
 
 	
 Lossless_Line::Lossless_Line(string N1,string N2,double d, double l, double c,double dT){
@@ -529,7 +499,7 @@ Lossless_Line::Lossless_Line(string N1,string N2, double Z, double T, double dT)
 	}
 	
 bool Lossless_Line::Compute_Ih(bool e){
-	cout<<"LossLessLine Zc:"<<Zc<<" "<<"Tau:"<<Tau<<" "<<"Keff:"<<k_eff<<" "<<"Ks:"<<k_sup<<" "<<"Ki:"<<k_inf<<" "<<endl;
+	//cout<<"LossLessLine Zc:"<<Zc<<" "<<"Tau:"<<Tau<<" "<<"Keff:"<<k_eff<<" "<<"Ks:"<<k_sup<<" "<<"Ki:"<<k_inf<<" "<<endl;
 	for(unsigned k=k_sup;k>0;k--){
 		gsl_vector_set(Vk,k,gsl_vector_get(Vk,k-1));
 		gsl_vector_set(Vm,k,gsl_vector_get(Vm,k-1));
@@ -546,10 +516,10 @@ bool Lossless_Line::Compute_Ih(bool e){
 	Ikm_tau=alpha*gsl_vector_get(Ikm,k_sup)+(1-alpha)*gsl_vector_get(Ikm,k_inf);
 	Imk_tau=alpha*gsl_vector_get(Imk,k_sup)+(1-alpha)*gsl_vector_get(Imk,k_inf);
 	
-	//Vk_tau=gsl_vector_get(Vk,k_inf);
-	//Vm_tau=gsl_vector_get(Vm,k_inf);
-	//Ikm_tau=gsl_vector_get(Ikm,k_inf);
-	//Imk_tau=gsl_vector_get(Imk,k_inf);
+	/*Vk_tau=gsl_vector_get(Vk,k_inf);
+	Vm_tau=gsl_vector_get(Vm,k_inf);
+	Ikm_tau=gsl_vector_get(Ikm,k_inf);
+	Imk_tau=gsl_vector_get(Imk,k_inf);*/
 
 	gsl_vector_set(&View_I_Hist_Pri.vector,0,-Vm_tau/Zc-Imk_tau);
 	gsl_vector_set(&View_I_Hist_Pri.vector,1,-Vk_tau/Zc-Ikm_tau);
@@ -575,18 +545,6 @@ bool Lossless_Line::Reset(){
 	gsl_vector_set_zero(Vk);
 	gsl_vector_set_zero(Ikm);
 	gsl_vector_set_zero(Imk);
-	return true;
-	}
-
-bool Lossless_Line::Init(double Iki, double Imi,double Vki, double Vmi){
-	gsl_vector_set(Ic,0,Iki);
-	gsl_vector_set(Ic,1,Imi);
-	gsl_vector_set(&View_V_Pri.vector,0,Vki);
-	gsl_vector_set(&View_V_Pri.vector,1,Vmi);
-	gsl_vector_set_all(Vm,Vmi);
-	gsl_vector_set_all(Vk,Vki);
-	gsl_vector_set_all(Ikm,Iki);
-	gsl_vector_set_all(Imk,Imi);
 	return true;
 	}
 	
@@ -674,10 +632,6 @@ bool Line::Compute_Ih(bool e){
 		gsl_vector_set(Imk,k,gsl_vector_get(Imk,k-1));
 		gsl_vector_set(Ikm,k,gsl_vector_get(Ikm,k-1));
 		}
-	/*cout<<"Hist:";
-	for(unsigned k=k_sup;k>0;k--){
-		cout<<gsl_vector_get(Vk,k)<<" ";
-		}*/
 	gsl_vector_set(Ikm,0,gsl_vector_get(Ic,0));
 	gsl_vector_set(Imk,0,gsl_vector_get(Ic,1));
 	gsl_vector_set(Vk,0,gsl_vector_get(&View_V_Pri.vector,0));
@@ -688,10 +642,10 @@ bool Line::Compute_Ih(bool e){
 	Ikm_tau=alpha*gsl_vector_get(Ikm,k_sup)+(1-alpha)*gsl_vector_get(Ikm,k_inf);
 	Imk_tau=alpha*gsl_vector_get(Imk,k_sup)+(1-alpha)*gsl_vector_get(Imk,k_inf);
 	
-	//Vk_tau=gsl_vector_get(Vk,k_sup);
-	//Vm_tau=gsl_vector_get(Vm,k_sup);
-	//Ikm_tau=gsl_vector_get(Ikm,k_sup);
-	//Imk_tau=gsl_vector_get(Imk,k_sup);
+	/*Vk_tau=gsl_vector_get(Vk,k_sup);
+	Vm_tau=gsl_vector_get(Vm,k_sup);
+	Ikm_tau=gsl_vector_get(Ikm,k_sup);
+	Imk_tau=gsl_vector_get(Imk,k_sup);*/
 
 	gsl_vector_set(&View_I_Hist_Pri.vector,0,-(Zc/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau)-((R/4)/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau));
 	
@@ -719,20 +673,7 @@ bool Line::Reset(){
 	gsl_vector_set_zero(Imk);
 	return true;
 	}
-
-bool Line::Init(double Iki, double Imi,double Vki, double Vmi){
-	gsl_vector_set(Ic,0,Iki);
-	gsl_vector_set(Ic,1,Imi);
-	gsl_vector_set(&View_V_Pri.vector,0,Vki);
-	gsl_vector_set(&View_V_Pri.vector,1,Vmi);
-	gsl_vector_set_all(Vm,Vmi);
-	gsl_vector_set_all(Vk,Vki);
-	gsl_vector_set_all(Ikm,Iki);
-	gsl_vector_set_all(Imk,Imi);
-	return true;
-	}
-
-/*	
+	
 //MLine::MLine(CableSet *C, vector<string> N, double l, double dT){
 //	nModes=C->Get_N_Modes();
 //	if((N.size()/2)!=nModes){
@@ -827,10 +768,10 @@ bool Line::Init(double Iki, double Imi,double Vki, double Vmi){
 //		Ikm_tau=alpha*gsl_vector_get(&Ikm.vector,k_sup)+(1-alpha)*gsl_vector_get(&Ikm.vector,k_inf);
 //		Imk_tau=alpha*gsl_vector_get(&Imk.vector,k_sup)+(1-alpha)*gsl_vector_get(&Imk.vector,k_inf);
 //	
-//		Vk_tau=gsl_vector_get(&Vk.vector,k_inf);
+//		/*Vk_tau=gsl_vector_get(&Vk.vector,k_inf);
 //		Vm_tau=gsl_vector_get(Vm,k_inf);
 //		Ikm_tau=gsl_vector_get(Ikm,k_inf);
-//		Imk_tau=gsl_vector_get(Imk,k_inf);
+//		Imk_tau=gsl_vector_get(Imk,k_inf);*/
 
 //		gsl_vector_set(Ih_Mode,2*m,-(Zc/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau)-((R/4)/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau));
 //		gsl_vector_set(Ih_Mode,2*m+1,-(Zc/pow(Zc+R/4,2))*(Vk_tau+(Zc-R/4)*Ikm_tau)-((R/4)/pow(Zc+R/4,2))*(Vm_tau+(Zc-R/4)*Imk_tau));
@@ -912,4 +853,209 @@ bool MLine2::Reset(){
 		}
 	return true;
 	}
+
+InductionMachine::InductionMachine(string N1, string N2, string N3, double r1, double r2, double l1, double l2, double lh, double jj, double kd, int p, double mt, double Dt) {
+	
+	Alias.push_back(N1);
+	Alias.push_back("TERRA");
+	Alias.push_back(N2);
+	Alias.push_back("TERRA");
+	Alias.push_back(N3);
+	Alias.push_back("TERRA");
+
+	Reff = gsl_matrix_alloc(3,3);
+	Ic = gsl_vector_alloc(3);
+
+	data.R1 = r1;
+	data.R2 = r2;
+	data.L1 = l1;
+	data.L2 = l2;
+	data.LH = lh;
+	data.sig = 1 -((lh*lh)/(l1*l2));
+	data.JJ = jj;
+	data.KD = kd;
+	data.P = p;
+	data.MT = mt;
+	data.dt = Dt;
+
+	T = 0.0;
+	
+	this->y[0] = 0.0; this->y[1] = 0.0; this->y[2] = 0.0; this->y[3] = 0.0;
+	this->y[4] = 0.0; this->y[5] = 0.0; this->y[6] = 0.0;
+
+	gsl_matrix_set(Reff,0,0, 2*lh/dt); /*Ref: Power Systems Eletromagnetic Transients Simulation pg 185-186*/
+	gsl_matrix_set(Reff,1,1, 2*lh/dt);
+	gsl_matrix_set(Reff,2,2, 2*lh/dt);
+
+	Changed=true;
+}
+
+
+int InductionMachine::func (double t, const double Y[], double F[], void *params) {
+	struct IM_ODE_Data *Param = (struct IM_ODE_Data *)params;
+	int z;
+	double T1, T2, sig;
+	double w2, md, a, b, c, d, e, f, g, h, m, v1, v2;
+	gsl_matrix *A = gsl_matrix_calloc(7, 7);
+	gsl_vector *B = gsl_vector_calloc(7);
+	gsl_vector *Y2 = gsl_vector_calloc(7);
+	gsl_vector *F2 = gsl_vector_calloc(7);
+
+	T1 = (Param->L1)/(Param->R1);
+	T2 = (Param->L2)/(Param->R2);
+
+	/* Escorregamento */
+	w2=-abs((Param->P)*Y[6]);
+
+	/* Conjugado eletromagnético */
+	md= -((Param->P) * (Param->LH) /sqrt(3)) *(Y[3]*(Y[2]-Y[1]) + Y[4]*(Y[0]-Y[2]) + Y[5]*(Y[1]-Y[0])) - Param->MT; 
+
+	/* Coeficientes da Matriz A */
+	/* T1 = L1/R1
+	 T2 = L2/R2 */
+	a=-1/((Param->sig)*(T1));
+	b=1/(sqrt(3)*(Param->sig))*w2*((Param->sig)-1);
+	c=(Param->LH)/((T2)*(Param->sig)*(Param->L1));
+	d=-(Param->LH)/((Param->sig)*sqrt(3)*(Param->L1))*w2;
+	e=(Param->R1)*(1-(Param->sig))/((Param->sig)*(Param->LH));
+	f=(1-(Param->sig))/((Param->sig)*sqrt(3))*(Param->L1)/(Param->LH)*w2;
+	g=-1/((Param->sig)*(T2));
+	h=1/(sqrt(3)*(Param->sig))*(w2);
+	m=-(Param->KD)/(Param->JJ);
+	v1=1/((Param->sig)*(Param->L1));
+	v2=-(1-(Param->sig))/((Param->sig)*(Param->LH));
+/*
+	yp = [a  b -b  c  d -d 0 ;...
+         -b  a  b -d  c  d 0 ;...
+          b -b  a  d -d  c 0 ;...
+          e  f -f  g  h -h 0 ;...
+         -f  e  f -h  g  h 0 ;...
+          f -f  e  h -h  g 0 ;...
+          0  0  0  0  0  0 m]*y + ...
+[v1*u1a; v1*u1b; v1*u1c; v2*u1a; v2*u1b; v2*u1c; md/JJ];
 */
+	
+	gsl_matrix_set (A, 0, 0, a);
+	gsl_matrix_set (A, 0, 1, b);
+	gsl_matrix_set (A, 0, 2, -b);
+	gsl_matrix_set (A, 0, 3, c);
+	gsl_matrix_set (A, 0, 4, d);
+	gsl_matrix_set (A, 0, 5, -d);
+
+	gsl_matrix_set (A, 1, 0, -b);
+	gsl_matrix_set (A, 1, 1, a);
+	gsl_matrix_set (A, 1, 2, b);
+	gsl_matrix_set (A, 1, 3, -d);
+	gsl_matrix_set (A, 1, 4, c);
+	gsl_matrix_set (A, 1, 5, d);
+
+	gsl_matrix_set (A, 2, 0, b);
+	gsl_matrix_set (A, 2, 1, -b);
+	gsl_matrix_set (A, 2, 2, a);
+	gsl_matrix_set (A, 2, 3, d);
+	gsl_matrix_set (A, 2, 4, -d);
+	gsl_matrix_set (A, 2, 5, c);
+
+	gsl_matrix_set (A, 3, 0, e);
+	gsl_matrix_set (A, 3, 1, f);
+	gsl_matrix_set (A, 3, 2, -f);
+	gsl_matrix_set (A, 3, 3, g);
+	gsl_matrix_set (A, 3, 4, h);
+	gsl_matrix_set (A, 3, 5, -h);
+
+	gsl_matrix_set (A, 4, 0, -f);
+	gsl_matrix_set (A, 4, 1, e);
+	gsl_matrix_set (A, 4, 2, f);
+	gsl_matrix_set (A, 4, 3, -h);
+	gsl_matrix_set (A, 4, 4, g);
+	gsl_matrix_set (A, 4, 5, h);
+
+	gsl_matrix_set (A, 5, 0, f);
+	gsl_matrix_set (A, 5, 1, -f);
+	gsl_matrix_set (A, 5, 2, e);
+	gsl_matrix_set (A, 5, 3, h);
+	gsl_matrix_set (A, 5, 4, -h);
+	gsl_matrix_set (A, 5, 5, g);
+
+	gsl_matrix_set (A, 6, 6, m);
+
+
+	gsl_vector_set (B, 0, v1*Param->u1a);
+	gsl_vector_set (B, 1, v1*Param->u1b);
+	gsl_vector_set (B, 2, v1*Param->u1c);
+	gsl_vector_set (B, 3, v2*Param->u1a);
+	gsl_vector_set (B, 4, v2*Param->u1b);
+	gsl_vector_set (B, 5, v2*Param->u1c);
+	gsl_vector_set (B, 6, md/Param->JJ);
+
+	for (z = 0; z < 7; z++) 
+		gsl_vector_set(Y2, z, Y[z]);
+
+	gsl_blas_dgemv(CblasNoTrans, 1.0, A, Y2, 0.0, F2);  /* F2[] = A[][]*Y[]  */
+	gsl_vector_add (F2, B);  /* F2[] = F2[] + B */
+
+	for (z = 0; z < 7; z++) 
+		F[z] = gsl_vector_get(F2, z);
+
+	gsl_vector_free (Y2);
+	gsl_vector_free (F2);
+	gsl_vector_free (B);
+	gsl_matrix_free (A);
+	
+	return GSL_SUCCESS;
+}
+
+bool InductionMachine::Compute_Ih(bool e) {
+
+	struct IM_ODE_Data Parameters = (struct IM_ODE_Data)data;
+	Parameters.u1a= this->Get_V(0);
+	Parameters.u1b= this->Get_V(1);
+	Parameters.u1c= this->Get_V(2);
+
+	double y2[7];
+
+	y2[0] = this->y[0]; y2[1] = this->y[1]; y2[2] = this->y[2]; y2[3] = this->y[3];
+	y2[4] = this->y[4]; y2[5] = this->y[5]; y2[6] = this->y[6];
+	
+
+	gsl_odeiv2_system sys = {func, NULL, 7, &Parameters };
+	gsl_odeiv2_driver*d = gsl_odeiv2_driver_alloc_y_new(&sys, gsl_odeiv2_step_rkf45, 1E-8, 1E-6, 0.0);
+	gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,1e-6, 1e-6, 0.0);
+	
+
+	int i, status;
+
+	status = gsl_odeiv2_driver_apply (d, &T, T + data.dt, y2);
+
+	if (status != GSL_SUCCESS) {
+		printf("error, return value = %d\n", status);
+		return 1;
+	}
+
+	gsl_vector_set(&View_I_Hist_Pri.vector,0, y2[0]+Parameters.u1a/(2*data.LH/data.dt));
+	gsl_vector_set(&View_I_Hist_Pri.vector,1, y2[1]+Parameters.u1b/(2*data.LH/data.dt));
+	gsl_vector_set(&View_I_Hist_Pri.vector,2, y2[2]+Parameters.u1c/(2*data.LH/data.dt));
+
+	this->y[0] = y2[0]; this->y[1] = y2[1]; this->y[2] = y2[2]; this->y[3] = y2[3];
+	this->y[4] = y2[4]; this->y[5] = y2[5]; this->y[6] = y2[6];
+		
+	gsl_odeiv2_driver_free(d);
+	return 0;
+}
+
+double InductionMachine::Get_Speed() {
+	return this->y[6];
+}
+void InductionMachine::Set_Mec_Torque(double mt) {
+	data.MT = mt;	
+}
+double InductionMachine::Get_Torque(){
+	return -((data.P) * (data.LH) /sqrt(3)) *(this->y[3]*(this->y[2]-this->y[1]) + this->y[4]*(this->y[0]-this->y[2]) + this->y[5]*(this->y[1]-this->y[0])) ;
+}
+
+
+
+
+
+
+

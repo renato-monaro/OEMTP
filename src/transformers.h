@@ -19,37 +19,34 @@
  * @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
  */
 
-#ifndef BLOCK_H
-#define BLOCK_H
+#ifndef TRANSFORMER_H
+#define TRANSFORMER_H
 
+
+#include <iomanip>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_blas.h>
+#include <vector>
+#include <math.h>
+#include <complex.h>      // std::complex
+#include <iostream>
+#include <fstream>
+#include <string>
+
+#include "constants.h"
 #include "components.h"
+
+
 
 using namespace std;
 
 namespace oemtp{
-	class Block{
-		public:
-			Block();
-			~Block();
-			unsigned Get_N_Components();
-			Component* Get_Component(unsigned N);
-			string Get_Block_Name();
-			string Get_Component_Block_Name(unsigned N);
-			void Set_Block_Name(string N);			
-		protected:
-			vector<Component*> vComponents;
-			vector<string> vComponentsName;
-			string Block_Name;
-			};
-	class Converter: public Block{
-		public:
-			Converter(string Name,string Na,string Nb,string Nc,string Np,string Nn, double L, double R,double C, double dT);
-			Converter(string Name,string Na,string Nb,string Nc,string Np,string Nn);
-			Switch *S1,*S2,*S3,*S4,*S5,*S6;
-			Diode *D1,*D2,*D3,*D4,*D5,*D6;
-			Inductor *La,*Lb,*Lc;
-			Resistor *Ra,*Rb,*Rc;
-			Capacitor *Cp,*Cn;
-		};	
-	}
+
+		
+	
+}
 #endif

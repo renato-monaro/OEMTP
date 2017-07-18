@@ -1,5 +1,7 @@
 /**
  *  Copyright 2015 by Renato Monaro and Silvio Giuseppe
+ *  Copyright 2016 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
+ *  Copyright 2017 by Renato Monaro, Silvio Giuseppe and Heitor Kenzo Koga
  *
  * This file is part of Open Electromagnetic Transient Program - OEMTP.
  * 
@@ -26,12 +28,20 @@
 #include "components.h"
 #include "block.h"
 #include "ode2.h"
+#include "regex"
+#include <memory>
+#include <algorithm>
+#include <fstream>
+#include <math.h>
+#include <stdlib.h>
 
 namespace oemtp{
 	class Circuit{
 		public:
     		Circuit();
     		~Circuit();
+			bool Interpreter(string file);
+			bool Generate_Output_File();
     		bool Join(Component*);
     		bool Join(Block *Bl);
   			bool Assembly();
@@ -41,13 +51,36 @@ namespace oemtp{
   			bool Compute_V();  			
   			bool Compute_I();
   			bool Reset();
+			void Print_Log(string s, int status);
   			int b;
+			int Get_Pos_Component(string name);
+			double dt;
+			double et;			
+			vector<string> Separate_Space(string s);
+			string Delete_Space(string s);
+			string Make_Regex(string name, int nodes, int param);
+			string Make_Regex2(string name, int param);
+			string Replace_String(string s, string toReplace, string replaceWith);
+			long Set_Jump_Step(double t);
+    	    
     	protected:
-    	    vector<Component*> vComponent;
+			vector<int> vGet_V; 
+			vector<int> vGet_I;
+			vector<int> vGet_Torque; 
+			vector<int> vGet_Speed;
+			vector<int> vOpen;
+			vector<double> vOpen_Time;
+			vector<int> vClose;
+			vector<double> vClose_Time;
+			vector<int> vChange;
+			vector<double> vChange_Value;
+			vector<double> vChange_Time;		
+			vector<string> vComponentName;
+			vector<unique_ptr<Component>> vComponent;
     	    gsl_matrix *Gpr;
 			gsl_matrix *A;
 			gsl_matrix *G;
-		   gsl_matrix *C;
+		    gsl_matrix *C;
 			gsl_vector *V;
 			gsl_vector *V_Pri;
 			gsl_vector *I_Hist;
@@ -60,6 +93,9 @@ namespace oemtp{
 			unsigned TNodes;
 			unsigned Total_Branches;
 			unsigned Total_Nodes;
+			string OutFile;
+			string LogFile;
+			int Sampling;
 		};
 	}
 #endif

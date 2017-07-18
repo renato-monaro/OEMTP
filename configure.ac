@@ -21,7 +21,7 @@ AC_PROG_CC
 AC_PROG_F77(gfortran)
 
 FFLAGS="-g -O0"
-CXXFLAGS="-O0 -g3"
+CXXFLAGS="-O0 -g3 -DEBUG"
 #FFLAGS="-O3"
 #CXXFLAGS="-O3"
 #LT_INIT([disable-static])

@@ -1,0 +1,46 @@
+@Simulation
+DT ; 1E-6
+et; 1
+
+@circuit
+
+E1 ; ac_source ;N1 TERRA; 220 60 0   0.0000001
+E2 ; ac_source ;N2 TERRA; 220 60 240 0.0000001
+E3 ; ac_source ;N3 TERRA; 220 60 120 0.0000001
+S1 ; switch ; N1 N4 ; 1
+S2 ; switch ; N2 N5 ; 1
+S3 ; switch ; N3 N6 ; 1
+R1 ; resistor;N4   TERRA ; 1E6
+R2 ; resistor;N5   TERRA  ; 1E6
+R3 ; resistor;N6   TERRA  ;  1E6
+IM ; inductionmachine ; N1 N2 N3 ; 0.435 0.816 0.07131203 0.07131203 0.06931198 0.089 0.0 2 0
+#IM ; inductionmachine ; N4 N5 N6 ; 7.56 3.84 0.35085 0.35085 0.33615 376.99118 376.99118 0.27 0.0001 16 0
+
+@Measure
+output   ; output.txt
+sampling ; 1000
+#V(C1) 
+#I(C1)
+V[E1]
+torque[IM]
+I[S1]
+I[S2]
+I[S3]
+I[IM]
+V[E2]
+V[E3]
+speed(IM)
+#v(R1)
+
+@Action
+#open   S1 0.0
+#open   S2 0.0
+#open   S3 0.0
+
+change IM 0.6 160
+#change E1 0.6 127 60 0
+close  S1 0.1
+close  S2 0.1
+close  S3 0.1
+
+

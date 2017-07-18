@@ -2,6 +2,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
+bin_PROGRAMS = oemtp
+oemtp_SOURCES = oemtp.cpp
+
 lib_LTLIBRARIES = liboemtp-@OEMTP_API_VERSION@.la
 liboemtp_@OEMTP_API_VERSION@_la_SOURCES = analysis.cpp\
 components.cpp\
@@ -9,6 +12,7 @@ cable.cpp\
 interface_orelay.cpp\
 ode2.cpp\
 block.cpp\
+transformers.cpp\
 support/support.cpp\
 support/fdump.f\
 support/d1mach.f\
@@ -110,6 +114,7 @@ liboemtp_@OEMTP_API_VERSION@_la_LDFLAGS = -version-info $(OEMTP_SO_VERSION)
 oemtp_includedir = $(includedir)/oemtp-$(OEMTP_API_VERSION)
 nobase_oemtp_include_HEADERS = analysis.h\
 components.h\
+transformers.h\
 cable.h\
 constants.h\
 interface_orelay.h\

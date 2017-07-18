@@ -1,0 +1,20 @@
+@Simulation
+
+#DT ; 0.001
+DT ; 1E-6
+et; 0.3
+
+@circuit
+
+E1 ; ac_source ;N1a TERRA; 4 60 0 0.01
+T1; transformer ; N1a TERRA N2 TERRA; 0.100E-3 0.9995E-3 0.9995E-3 0.100E-3
+R1 ; resistor;N2   TERRA  ;   2.0
+
+@Measure
+output   ; output.txt
+sampling ; 100
+v(R1)
+
+@Action
+
+
