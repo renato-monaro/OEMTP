@@ -120,6 +120,7 @@ constants.h\
 interface_orelay.h\
 ode2.h\
 block.h\
+gnuplot.h\
 support/support.h
 #components.h \
 #interface_orelay.h
