@@ -48,6 +48,15 @@ AS_IF(	[test "x$with_debug" != xno],
 	]
 	)
 
+AC_CHECK_PROGS([GNUPLOT], [gnuplot])
+if test -z "$GNUPLOT";
+   then
+	AC_MSG_WARN([gnuplot not found - continuing without gnuplot support - use gnuplot-x11])
+   else 
+	AC_MSG_NOTICE([gnuplot found!])
+	CPPFLAGS="-DGNUPLOT $CPPFLAGS"
+fi
+
 AC_CHECK_PROGS([DOXYGEN], [doxygen])
 if test -z "$DOXYGEN";
    then AC_MSG_WARN([Doxygen not found - continuing without Doxygen support])
