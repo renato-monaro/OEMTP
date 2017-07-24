@@ -347,6 +347,13 @@ long Circuit::Set_Jump_Step(double t){
 		return long(t/dt);
 }
 
+#ifdef GNUPLOT
+bool Circuit::Define_Folder(string folder_Name){
+	OutFolder = folder_Name;
+	return 0;
+}
+#endif
+
 bool Circuit::Generate_Output_File(){
 	double eps = 0.000000000001;
 	double last_time = -1;
@@ -355,8 +362,49 @@ bool Circuit::Generate_Output_File(){
 	double p = 0.1;
 	long jump_step = 0;
 	bool OFile = 1;
+	bool plot = 0;
 	fstream output;
 	std::fstream OEMTPlog;
+
+#ifdef GNUPLOT
+	vector<double> time;
+	vector< vector<double>* > canais;
+	string a;
+	if(OutFolder.empty())
+		OutFolder = "Pasta_Saida";
+	gnuplot<double> PlotOutput("Figura","xy",OutFolder);
+	if(OutFile == "plot"){
+		OFile = 0;
+		plot  = 1;
+
+		for(int i = 0; i < vGet_V.size(); i++) {
+			vector<double>* vVector = new vector<double>;
+			canais.push_back(vVector);
+			a = "V("+vComponentName.at(vGet_V.at(i))+") ";
+
+		}
+		for(int i = 0; i < vGet_I.size(); i++) {
+			vector<double>* iVector = new vector<double>;
+			canais.push_back(iVector);
+			a = "I("+vComponentName.at(vGet_I.at(i))+") ";
+
+		}
+		for(int i = 0; i < vGet_Torque.size(); i++) {
+			vector<double>* tVector = new vector<double>;
+			canais.push_back(tVector);
+			a = "T("+vComponentName.at(vGet_Torque.at(i))+") ";
+
+		}
+		for(int i = 0; i < vGet_Speed.size(); i++) {
+			vector<double>* sVector = new vector<double>;
+			canais.push_back(sVector);
+			a = "S("+vComponentName.at(vGet_Speed.at(i))+") ";
+
+		}
+	}
+	if(!plot)
+#endif
+
 	if (OutFile != "terminal"){
 		output.open(OutFile.c_str(), std::ofstream::out | std::fstream::trunc);
 		if (output.fail()){
@@ -375,30 +423,45 @@ bool Circuit::Generate_Output_File(){
 
 	else {
 		OEMTPlog << endl << "@Simulation log: " << endl << endl;
+		#ifdef GNUPLOT
+		if(!plot)	
+		#endif	
 		if (OFile)
 			output << "#Time ";
 		else
 			cout << "#Time ";
 
 		for (int i = 0; i < vGet_V.size(); i++){
+			#ifdef GNUPLOT
+			if(!plot)	
+			#endif	
 			if (OFile)
 				output << "V(" << vComponentName.at(vGet_V.at(i))  <<") ";
 			else
 				cout << "V(" << vComponentName.at(vGet_V.at(i))  <<") ";
 		}
 		for (int i = 0; i < vGet_I.size(); i++){
+			#ifdef GNUPLOT
+			if(!plot)	
+			#endif	
 			if (OFile)
 				output << "I(" << vComponentName.at(vGet_I.at(i))  <<") ";
 			else
 				cout << "I(" << vComponentName.at(vGet_I.at(i))  <<") ";
 		}
 		for (int i = 0; i < vGet_Torque.size(); i++){
+			#ifdef GNUPLOT
+			if(!plot)	
+			#endif	
 			if (OFile)
 				output << "Torque(" << vComponentName.at(vGet_Torque.at(i))  <<") ";
 			else
 				cout << "Torque(" << vComponentName.at(vGet_Torque.at(i))  <<") ";
 		}
 		for (int i = 0; i < vGet_Speed.size(); i++){
+			#ifdef GNUPLOT
+			if(!plot)	
+			#endif	
 			if (OFile)
 				output << "Speed(" << vComponentName.at(vGet_Speed.at(i))  <<") ";
 			else
@@ -489,6 +552,11 @@ bool Circuit::Generate_Output_File(){
 				Compute_I();
 			}
 			if (!(k%Sampling)){
+				#ifdef GNUPLOT
+				if(plot)
+					time.push_back(k*dt);
+				else	
+				#endif
 				if (OFile) 
 					output << endl << k*dt << " ";
 				else
@@ -500,6 +568,11 @@ bool Circuit::Generate_Output_File(){
 				}
 
 				for (int i = 0; i < vGet_V.size(); i++){
+					#ifdef GNUPLOT
+					if(plot)
+						canais[i]->push_back(vComponent[vGet_V.at(i)]->Get_V(0));
+					else
+					#endif
 					if (OFile)
 						output << vComponent[vGet_V.at(i)]->Get_V(0)  <<" ";
 					else
@@ -507,6 +580,11 @@ bool Circuit::Generate_Output_File(){
 				}
 					
 				for (int i = 0; i < vGet_I.size(); i++){
+					#ifdef GNUPLOT
+					if(plot)
+						canais[vGet_V.size()+i]->push_back(vComponent[vGet_I.at(i)]->Get_I(0));
+					else
+					#endif
 					if (OFile)
 						output << vComponent[vGet_I.at(i)]->Get_I(0)  <<" ";
 					else
@@ -515,6 +593,11 @@ bool Circuit::Generate_Output_File(){
 
 				for (int i = 0; i < vGet_Torque.size(); i++){
 					if (InductionMachine* im = dynamic_cast<InductionMachine*>(vComponent.at(vGet_Torque.at(i)).get())) {
+						#ifdef GNUPLOT
+						if(plot)
+							canais[vGet_V.size()+vGet_I.size()+i]->push_back(im->Get_Torque());
+						else
+						#endif
 						if (OFile)
 							output << im->Get_Torque()  <<" ";
 						else
@@ -525,6 +608,11 @@ bool Circuit::Generate_Output_File(){
 
 				for (int i = 0; i < vGet_Speed.size(); i++){
 					if (InductionMachine* im = dynamic_cast<InductionMachine*>(vComponent.at(vGet_Speed.at(i)).get())) {
+						#ifdef GNUPLOT
+						if(plot)
+							canais[vGet_V.size()+vGet_I.size()+vGet_Torque.size()+i]->push_back(im->Get_Speed());
+						else
+						#endif
 						if (OFile)
 							output << im->Get_Speed()  <<" ";
 						else
@@ -542,6 +630,41 @@ bool Circuit::Generate_Output_File(){
 				min = et + 1;
 		}	
 	}
+#ifdef GNUPLOT
+	if(OutFile =="plot"){
+		int j = 0;
+		for(int i = 0; i < vGet_V.size(); i++) {
+			while(vPlotComp[j]!="V"){j++;}			
+			a = "V("+vComponentName.at(vGet_V.at(i))+")";
+			PlotOutput.Join("Tempo[s]", "Tensao[V]", a, *canais[i], time, std::stoi(vPlotOrder[j]) );
+			j++;
+		}
+		j = 0;
+		for(int i = 0; i < vGet_I.size(); i++) {
+			while(vPlotComp[j]!="I"){j++;}
+			a = "I("+vComponentName.at(vGet_I.at(i))+")";
+			PlotOutput.Join("Tempo[s]", "Corrente[A]", a, *canais[i+ vGet_V.size()], time, std::stoi(vPlotOrder[j]) );
+			j++;
+		}
+		j = 0;
+		for(int i = 0; i < vGet_Torque.size(); i++) {
+			while(vPlotComp[j]!="T"){j++;}
+			a = "T("+vComponentName.at(vGet_Torque.at(i))+")";
+			PlotOutput.Join("Tempo[s]", "Torque[Nm]", a, *canais[i+ vGet_V.size()+vGet_I.size()], time, std::stoi(vPlotOrder[j]) );
+			j++;
+		}
+		j = 0;
+		for(int i = 0; i < vGet_Speed.size(); i++) {
+			while(vPlotComp[j]!="S"){j++;}
+			a = "S("+vComponentName.at(vGet_Speed.at(i))+")";
+			PlotOutput.Join("Tempo[s]", "Velocidade[RPS]", a, *canais[i+ vGet_V.size()+vGet_I.size()+vGet_Torque.size()], time, std::stoi(vPlotOrder[j]) );
+			j++;
+		}
+
+		PlotOutput.run(pointInterval,true);
+
+	}
+#endif
 	output.close();
 	OEMTPlog.close();
 	return 0;
@@ -615,6 +738,9 @@ bool Circuit::Interpreter(string file)
 	vector<string> blocks;
 	vector<string> nodes;
 	vector<string> parameters;
+	#ifdef GNUPLOT
+		int _exp = -1;	
+	#endif	
 	std::regex HeadSimulation("(?:^\\s*@\\s*(simulation)\\s*)$", std::regex_constants::icase);
 	std::regex HeadCircuit("(?:^\\s*@\\s*(circuit)\\s*)$", std::regex_constants::icase);
 	std::regex HeadMeasure("(?:^\\s*@\\s*(measure|measures)\\s*)$", std::regex_constants::icase);
@@ -877,10 +1003,16 @@ bool Circuit::Interpreter(string file)
 			while (ComponentTxt && step == 3){
 				getline(ComponentTxt, line);
 				if (std::regex_match(line, matchs, std::regex("(?:^\\s*#.*)$")) || std::regex_match(line, matchs, std::regex("(?:^\\s*)$")) || line == ""){}
-				else if (std::regex_match(line, matchs, std::regex("(?:^\\s*(?:output)\\s*;\\s*((?:\\S{1,}){1}\\s*))$",std::regex_constants::icase))){
+				else if (std::regex_match(line, matchs, std::regex("(?:^\\s*(?:output)\\s*;\\s*((?:\\S{1,}){1}\\s*))\\s*(\\S{1,})*\\s*$",std::regex_constants::icase))){
 					vector <string> aux = Separate_Space(matchs[1]);
 					OutFile = aux.at(0).c_str();
 					Print_Log(line, 1);
+					#ifdef GNUPLOT
+						if (matchs[2].length() == 0)
+							pointInterval = 1;
+						else
+							pointInterval = std::stoi(matchs[2]);
+					#endif
 				}
 				else if (std::regex_match(line, matchs, std::regex("(?:^\\s*(?:sampling)\\s*;\\s*((?:\\S{1,}){1}\\s*))$",std::regex_constants::icase))){
 					vector <string> aux = Separate_Space(matchs[1]);
@@ -890,7 +1022,7 @@ bool Circuit::Interpreter(string file)
 					else
 						Print_Log(line, 12);
 				}
-				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:V|v)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)$"))){
+				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:V|v)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)\\s*;*\\s*(\\S{1,})*\\s*$"))){
 					vector <string> aux = Separate_Space(matchs[1]);
 					string CompName = aux.at(0).c_str();
 					int aux3 = Get_Pos_Component(CompName);
@@ -900,9 +1032,17 @@ bool Circuit::Interpreter(string file)
 					}
 					else
 						Print_Log(line, 9);
-					
+					#ifdef GNUPLOT
+						if (matchs[2].length() == 0){
+							vPlotOrder.push_back(to_string(_exp));
+							_exp--;
+						}
+						else{
+							vPlotOrder.push_back(matchs[2]);}
+						vPlotComp.push_back("V");
+					#endif
 				}
-				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:I|i)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)$"))){
+				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:I|i)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)\\s*;*\\s*(\\S{1,})*\\s*$"))){
 					vector <string> aux = Separate_Space(matchs[1]);
 					string CompName = aux.at(0).c_str();
 					int aux2 = Get_Pos_Component(CompName);
@@ -912,8 +1052,16 @@ bool Circuit::Interpreter(string file)
 					}
 					else
 						Print_Log(line, 9);
+					#ifdef GNUPLOT
+						if (matchs[2].length() == 0){
+							vPlotOrder.push_back(to_string(_exp));
+							_exp--;}
+						else{
+							vPlotOrder.push_back(matchs[2]);}
+						vPlotComp.push_back("I");
+					#endif
 				}
-				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:torque)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)$",std::regex_constants::icase))){
+				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:torque)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)\\s*;*\\s*(\\S{1,})*\\s*$",std::regex_constants::icase))){
 					vector <string> aux = Separate_Space(matchs[1]);
 					string CompName = aux.at(0).c_str();
 					int aux2 = Get_Pos_Component(CompName);
@@ -923,9 +1071,17 @@ bool Circuit::Interpreter(string file)
 					}
 					else
 						Print_Log(line, 9);
+					#ifdef GNUPLOT
+						if (matchs[2].length() == 0){
+							vPlotOrder.push_back(to_string(_exp));
+							_exp--;}
+						else{
+							vPlotOrder.push_back(matchs[2]);}
+						vPlotComp.push_back("T");
+					#endif
 				}
 
-				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:speed)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)$",std::regex_constants::icase))){
+				else if (std::regex_match (line, matchs, std::regex("(?:^\\s*(?:speed)\\s*(?:\\(|\\[)\\s*((?:\\S{1,}){1})\\s*(?:\\)|\\])\\s*)\\s*;*\\s*(\\S{1,})*\\s*$",std::regex_constants::icase))){
 					vector <string> aux = Separate_Space(matchs[1]);
 					string CompName = aux.at(0).c_str();
 					int aux2 = Get_Pos_Component(CompName);
@@ -935,6 +1091,14 @@ bool Circuit::Interpreter(string file)
 					}
 					else
 						Print_Log(line, 9);
+					#ifdef GNUPLOT
+						if (matchs[2].length() == 0){
+							vPlotOrder.push_back(to_string(_exp));
+							_exp--;}
+						else{
+							vPlotOrder.push_back(matchs[2]);}
+						vPlotComp.push_back("S");
+					#endif
 				}
 
 				else if (std::regex_match(line, matchs, HeadAction)){

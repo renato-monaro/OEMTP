@@ -34,6 +34,9 @@
 #include <fstream>
 #include <math.h>
 #include <stdlib.h>
+#ifdef GNUPLOT
+#include "gnuplot.h"
+#endif
 
 namespace oemtp{
 	class Circuit{
@@ -42,6 +45,9 @@ namespace oemtp{
     		~Circuit();
 			bool Interpreter(string file);
 			bool Generate_Output_File();
+			#ifdef GNUPLOT
+				bool Define_Folder(string folder_Name);
+			#endif
     		bool Join(Component*);
     		bool Join(Block *Bl);
   			bool Assembly();
@@ -96,6 +102,12 @@ namespace oemtp{
 			string OutFile;
 			string LogFile;
 			int Sampling;
+			#ifdef GNUPLOT
+				string OutFolder; 
+				vector<string> vPlotOrder; 
+				vector<string> vPlotComp;
+				int pointInterval;
+			#endif
 		};
 	}
 #endif
